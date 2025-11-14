@@ -1,0 +1,42 @@
+local ServerStorage = game:GetService("ServerStorage")
+local Template = script.Template
+local module = {}
+local player = game.Players.LocalPlayer
+
+function module.updateInv(player, inventory, PetData)
+    if not player or not inventory or not PetData then return end
+    for _, child in ipairs(player.PlayerGui.ScreenGui.Main.Inv:GetChildren()) do
+        if(child:IsA("Frame")) then
+            child:Destroy()
+        end
+    end
+    for _, pet in ipairs(inventory) do
+        local gui = player.PlayerGui.ScreenGui.Main.Side
+        local Clone = Template:Clone()
+        Clone.Parent = player.PlayerGui.ScreenGui.Main.Inv
+        Clone.Name = pet.Name
+        Clone:SetAttribute("Uid", pet.Uid)
+        Clone.Click.Text = pet.Name
+        Clone.Visible = true
+        if(pet.Equipped == true) then
+            Clone.EquipState.Visible = true
+        end
+        Clone.Click.MouseButton1Click:Connect(function()
+            gui.petName.Text = pet.Name
+            gui.Power.Text = PetData[pet.Name].Power
+            gui.Equip:SetAttribute("Uid", pet.Uid)
+            print(pet)
+            if(pet.Equipped == true) then
+                pet.Equipped = false
+                game.ReplicatedStorage.Remotes.UnequipPet:FireServer(pet.Uid)
+                Clone.EquipState.Visible = false
+            else
+                pet.Equipped = true
+                game.ReplicatedStorage.Remotes.EquipPet:FireServer(pet.Uid)
+                Clone.EquipState.Visible = true
+            end
+        end)
+    end
+end
+
+return module
